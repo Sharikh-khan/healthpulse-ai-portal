@@ -11,6 +11,8 @@ import streamlit as st
 from google import genai
 from google.genai import types
 import pypdf
+from datetime import datetime, timedelta
+from icalendar import Calendar, Event
 
 # ReportLab Imports for PDF Generation
 from reportlab.lib.pagesizes import letter
@@ -587,6 +589,21 @@ if "chat_messages" not in st.session_state:
         {"role": "assistant", "content": "Hello! I am **HealthPulse AI**. How can I assist you with your health logs, uploaded lab reports, or symptoms today?"}
     ]
 
+def create_ics_file(summary, start_time, doctor_name, location="Clinic/Hospital"):
+    cal = Calendar()
+    cal.add('prodid', '-//HealthPulse AI Smart Portal//EN')
+    cal.add('version', '2.0')
+
+    event = Event()
+    event.add('summary', f"🏥 Appointment: {doctor_name} ({summary})")
+    event.add('dtstart', start_time)
+    event.add('dtend', start_time + timedelta(hours=1))
+    event.add('description', f"Scheduled via HealthPulse AI Portal. Doctor/Specialty: {doctor_name}")
+    event.add('location', location)
+    
+    cal.add_component(event)
+    return cal.to_ical()
+
 # ---------------------------------------------------------
 # Top Header Banner
 # ---------------------------------------------------------
@@ -670,11 +687,13 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ---------------------------------------------------------
 # Main Navigation Tabs
 # ---------------------------------------------------------
-tab_vitals, tab_history, tab_map, tab_ai = st.tabs([
-    "📊 Vital Analytics", 
-    "📜 Medical Records & Reports", 
-    "🏥 Nearby Healthcare Map", 
-    "💬 Clinical AI Assistant"
+# Updated Main Navigation Tabs
+tab_vitals, tab_history, tab_map, tab_ai, tab_reminders = st.tabs([
+    "📊 Vital Analytics",
+    "📜 Medical Records & Reports",
+    "🗺️ Nearby Healthcare Map",
+    "💬 Clinical AI Assistant",
+    "📅 Reminders & Appointments"
 ])
 
 # =========================================================
@@ -943,7 +962,7 @@ with tab_ai:
 
                 # Request dynamic response from Gemini
                 response = client.models.generate_content(
-                    model='gemini-3.6-flash',
+                    model='gemini-3.8-flash',
                     contents=prompt,
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
@@ -960,4 +979,67 @@ with tab_ai:
         with st.chat_message("assistant"):
             st.markdown(ai_reply)
 
+    st.markdown('</div>', unsafe_allow_html=True)
+# =========================================================
+# TAB 5: APPOINTMENTS & CALENDAR REMINDERS
+# =========================================================
+with tab_reminders:
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.subheader("📅 Doctor Appointments & Follow-up Reminders")
+    st.caption("Keep track of upcoming clinical visits and sync reminders directly to your personal calendar.")
+
+    # Initialize session state for reminders
+    if "reminders" not in st.session_state:
+        st.session_state.reminders = [
+            {
+                "doctor": "Dr. Sharma (Cardiologist)", 
+                "date": datetime.now() + timedelta(days=3), 
+                "location": "Manipal Hospital", 
+                "notes": "Follow-up blood pressure review"
+            }
+        ]
+
+    # Form to schedule or log upcoming appointments
+    with st.expander("➕ Schedule / Add Appointment Reminder", expanded=True):
+        col1, col2 = st.columns(2)
+        with col1:
+            doc_name = st.text_input("Doctor Name / Specialty", "Dr. Anita Rao (Dermatologist)")
+            hospital_loc = st.text_input("Location / Facility", "Sakra World Hospital")
+        with col2:
+            appt_date = st.date_input("Appointment Date", datetime.now() + timedelta(days=7))
+            appt_time = st.time_input("Appointment Time", datetime.strptime("10:30", "%H:%M").time())
+
+        notes = st.text_input("Reason / Prescription Notes", "Review recent blood test results")
+
+        if st.button("📌 Save Appointment Reminder"):
+            full_dt = datetime.combine(appt_date, appt_time)
+            st.session_state.reminders.append({
+                "doctor": doc_name,
+                "date": full_dt,
+                "location": hospital_loc,
+                "notes": notes
+            })
+            st.success(f"Appointment with {doc_name} saved successfully!")
+
+    st.markdown("---")
+    st.write("### 🔔 Active Reminders")
+
+    for idx, rem in enumerate(st.session_state.reminders):
+        c1, c2, c3 = st.columns([3, 2, 2])
+        with c1:
+            st.markdown(f"**{rem['doctor']}**")
+            st.caption(f"📍 {rem['location']} | 📝 {rem['notes']}")
+        with c2:
+            st.info(f"📆 {rem['date'].strftime('%b %d, %Y at %I:%M %p')}")
+        with c3:
+            ics_data = create_ics_file(rem['notes'], rem['date'], rem['doctor'], rem['location'])
+            st.download_button(
+                label="📲 Sync to Calendar (.ics)",
+                data=ics_data,
+                file_name=f"appointment_{rem['doctor'].replace(' ', '_')}.ics",
+                mime="text/calendar",
+                key=f"dl_rem_{idx}"
+            )
+        st.markdown("---")
+    
     st.markdown('</div>', unsafe_allow_html=True)
