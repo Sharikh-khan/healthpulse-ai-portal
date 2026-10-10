@@ -1,4 +1,4 @@
-# 🏥 HealthPulse AI Smart Portal
+# 🏥 HealthPulse AI Smart Health Portal
 
 An AI-driven public health awareness and clinical guidance portal built with Streamlit and powered by Google Gemini. The platform provides interactive symptom guidance, disease prevention tips, a localized hospital directory, and personal health vitals tracking.
 
