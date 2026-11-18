@@ -1,0 +1,5 @@
+Title: Low hemoglobin (anemia): basics
+Source: ADD THE OFFICIAL PAGE URL (for example WHO or NHS) before presenting this as a verified source.
+Note: Starter note written for this project in plain language. Replace it with text from an official source.
+
+Hemoglobin carries oxygen in the blood. Commonly used lower limits are about 13 g/dL for adult men and 12 g/dL for adult non-pregnant women, and about 11 g/dL in pregnancy. Values below these suggest anemia. Symptoms include tiredness, pale skin, breathlessness on effort, dizziness and fast heartbeat. Common causes are low iron, low vitamin B12 or folate, blood loss and long-term illness. A doctor should find the cause before starting supplements, since the right treatment depends on it. Iron-rich foods include leafy greens, legumes, jaggery and meat, and vitamin C helps iron absorption. Severe breathlessness, chest pain or fainting needs urgent care.

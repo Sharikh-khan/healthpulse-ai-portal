@@ -1,0 +1,10 @@
+streamlit>=1.40
+pandas
+numpy
+plotly
+google-genai
+pypdf
+reportlab
+icalendar
+requests
+qrcode[pil]
